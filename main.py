@@ -37,7 +37,7 @@ class SistemaGestion:
             bool: True si el registro fue exitoso
         """
         try:
-            cliente = Cliente(nome, documento, contacto)
+            cliente = Cliente(nombre, documento, contacto)
             self.__client.append(cliente)
             logger.info(f"Cliente registrado: {cliente}")
             return True
