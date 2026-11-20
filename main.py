@@ -233,7 +233,7 @@ def ejecutar_simulaciones():
 
     costo_equipo = sistema.procesarReserva(
         reserva_equipo,
-        danio=False,
+        daño=False,
         limpieza=True
     )
 
@@ -322,7 +322,10 @@ def ejecutar_simulaciones():
 
     try:
         sistema.procesarReserva(reserva_mantenimiento)
-    except (ServicioNoDisponibleError, ReservaInvalidaError) as error:
+    except ServicioNoDisponibleError as error:
+        logger.warning("Servicio rechazado: %s", error)
+        print("Resultado: no se pudo reservar el equipo.")
+    except ReservaInvalidaError as error:
         logger.error("No se pudo procesar la reserva: %s", error)
         print("Resultado: no se pudo reservar el equipo.")
 
@@ -472,7 +475,7 @@ class TestServicios(unittest.TestCase):
 
         costo = equipo.calcular_costo(
             2,
-            danio=False,
+            daño=False,
             limpieza=True
         )
 

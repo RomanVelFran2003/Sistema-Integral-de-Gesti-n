@@ -11,7 +11,8 @@ from excepciones import (
     ReservaInvalidaError,
     DuracionInvalidaError,
     EstadoReservaError,
-    ParametroObligatorioError
+    ParametroObligatorioError,
+    ServicioNoDisponibleError
 )
 from logging_config import logger
 
@@ -208,6 +209,9 @@ class Reserva:
             )
 
             return costo
+
+        except ServicioNoDisponibleError:
+            raise
 
         except Exception as error:
             logger.exception(
