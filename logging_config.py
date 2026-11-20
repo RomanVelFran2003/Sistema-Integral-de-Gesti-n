@@ -1,63 +1,66 @@
+9.
 """
-logging_config.py - Configuración del sistema de logging profesional.
+logging_config.py - Configuración del sistema de registros (logs).
 """
+
 import logging
-import os
 from datetime import datetime
+from pathlib import Path
+
 
 def configurar_logging() -> logging.Logger:
     """
-    Configura el sistema de logging con múltiples niveles y salidas.
-    
-    Returns:
-        logging.Logger: Logger configurado
+    Configura los registros generales, errores y mensajes de consola.
     """
-    # Crear directorio de logs si no existe
-    log_dir = 'logs'
-    if not os.path.exists(log_dir):
-        os.makedirs(log_dir)
-    
-    # Configurar logger principal
-    logger = logging.getLogger('SoftwareFJ')
-    logger.setLevel(logging.DEBUG)  # Capturar todos los niveles
-    
-    # Evitar duplicación de handlers
-    if logger.handlers:
-        logger.handlers.clear()
-    
-    # Formato detallado
-    formato_detallado = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S'
+
+    # Crear la carpeta logs dentro del proyecto.
+    directorio_logs = Path(__file__).resolve().parent / "logs"
+    directorio_logs.mkdir(parents=True, exist_ok=True)
+
+    # Obtener el logger principal.
+    logger = logging.getLogger("SoftwareFJ")
+    logger.setLevel(logging.DEBUG)
+    logger.propagate = False
+
+    # Evitar que se dupliquen los registros al configurar nuevamente.
+    for handler in logger.handlers[:]:
+        handler.close()
+        logger.removeHandler(handler)
+
+    fecha = datetime.now().strftime("%Y%m%d")
+
+    formato = logging.Formatter(
+        "%(asctime)s - %(levelname)s - %(name)s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S"
     )
-    
-    # Handler para archivo principal (todos los niveles)
-    archivo_principal = logging.FileHandler(
-        f'logs/software_fj_{datetime.now().strftime("%Y%m%d")}.log',
-        encoding='utf-8'
+
+    # Archivo para todos los eventos.
+    archivo_general = logging.FileHandler(
+        directorio_logs / f"software_fj_{fecha}.log",
+        encoding="utf-8"
     )
-    archivo_principal.setLevel(logging.DEBUG)
-    archivo_principal.setFormatter(formato_detallado)
-    
-    # Handler para errores (solo ERROR y CRITICAL)
+    archivo_general.setLevel(logging.INFO)
+    archivo_general.setFormatter(formato)
+
+    # Archivo exclusivo para errores.
     archivo_errores = logging.FileHandler(
-        f'logs/software_fj_errores_{datetime.now().strftime("%Y%m%d")}.log',
-        encoding='utf-8'
+        directorio_logs / f"errores_{fecha}.log",
+        encoding="utf-8"
     )
     archivo_errores.setLevel(logging.ERROR)
-    archivo_errores.setFormatter(formato_detallado)
-    
-    # Handler para consola (desarrollo)
+    archivo_errores.setFormatter(formato)
+
+    # Mostrar los registros también en la consola.
     consola = logging.StreamHandler()
     consola.setLevel(logging.INFO)
-    consola.setFormatter(formato_detallado)
-    
-    # Agregar handlers al logger
-    logger.addHandler(archivo_principal)
+    consola.setFormatter(formato)
+
+    logger.addHandler(archivo_general)
     logger.addHandler(archivo_errores)
     logger.addHandler(consola)
-    
+
     return logger
 
-# Logger global para el sistema
+
+# Logger disponible para los demás módulos.
 logger = configurar_logging()

@@ -1,367 +1,627 @@
 """
-main.py - Script principal del sistema Software FJ.
-Ejecuta simulaciones completas del sistema.
+main.py - Programa principal del Sistema Integral de Gestion.
+Software FJ
 """
+
 import sys
 from datetime import date, timedelta
+
 from cliente import Cliente
+from reserva import Reserva
 from servicio import Servicio
 from reserva_sala import ReservaSala
 from alquiler_equipo import AlquilerEquipo
 from asesoria_especializada import AsesoriaEspecializada
-from reserva import Reserva
+
 from excepciones import (
-    ClienteInvalidoError, ServicioNoDisponibleError, ReservaInvalidaError,
-    DuracionInvalidaError, ParametroObligatorioError, EstadoReservaError,
-    CalculoCostoError
+    ClienteInvalidoError,
+    ServicioNoDisponibleError,
+    ReservaInvalidaError,
+    DuracionInvalidaError,
+    ParametroObligatorioError,
+    EstadoReservaError
 )
+
 from logging_config import logger
+
 
 class SistemaGestion:
     """
-    Clase principal que gestiona el sistema de Software FJ.
+    Administra clientes, servicios y reservas del sistema.
+    La informacion se conserva en listas durante la ejecucion.
     """
-    
+
     def __init__(self):
-        """ inicializa el sistema con listas vacías."""
-        self.__client = []
+        self.__clientes = []
         self.__servicios = []
         self.__reservas = []
-        logger.info(" Sistema Software FJ iniciado")
-    
-    def registrarCliente(self, nombre: str, documento: str, contacto: str) -> bool:
-        """
-        Registra un nuevo cliente en el sistema.
-        
-        Returns:
-            bool: True si el registro fue exitoso
-        """
-        try:
-            cliente = Cliente(nombre, documento, contacto)
-            self.__client.append(cliente)
-            logger.info(f"Cliente registrado: {cliente}")
-            return True
-        except (ClienteInvalidoError, ParametroObligatorioError) as e:
-            logger.error(f"Error registrando cliente: {str(e)}")
-            return False
-        except Exception as e:
-            logger.critical(f"Error inesperado registrando cliente: {str(e)}")
-            return False
-    
-    def agregarServicio(self, servicio) -> bool:
-        """
-        Agrega un servicio al sistema.
-        
-        Returns:
-            bool: True si la agregación fue exitosa
-        """
-        try:
-            self.__servicios.append(servicio)
-            logger.info(f"Servicio agregado: {servicio}")
-            return True
-        except Exception as e:
-            logger.error(f"Error agregando servicio: {str(e)}")
-            return False
-    
-    def crearReserva(self, cliente: Cliente, servicio: Servicio, duración: int, fecha: date) -> bool:
-        """
-        Crea una nueva reserva.
-        
-        Returns:
-            bool: True si la reserva fue exitosa
-        """
-        try:
-            reserva = Reserva(cliente, servicio, duración, fecha)
-            self.__reservas.append(reserva)
-            logger.info(f"Reserva creada: {reserva}")
-            return True
-        except (ReservaInvalidaError, DuracionInvalidaError, ParametroObligatorioError) as e:
-            logger.error(f"Error creando reserva: {str(e)}")
-            return False
-        except Exception as e:
-            logger.critical(f"Error inesperado creando reserva: {str(e)}")
-            return False
-    
-    def ejecutar_simulaciones(self):
-        """ Ejecuta las simulaciones obligatorias del sistema."""
-        logger.info("=== INICIANDO SIMULACIONES OBLIGATORIAS ===")
-        
-        # Simulaciones válidas
-        self._simulacion1_ClienteValido()
-        self._simulacion2_ReservaValida()
-        self._simulacion3_SalaValida()
-        self._simulacion4_EquipoValido()
-        self._simulacion5_AsesoriaValida()
-        
-        # Simulaciones inválidas
-        self._simulacion6_ClienteSinDocumento()
-        self._simulacion7_ClienteDatosIncorrectos()
-        self._simulacion8_ServicioInexistente()
-        self._simulacion9_DurationInvalida()
-        self._simulacion10_ReservaIncorrecta()
-        
-        # Simulaciones extra para robustez
-        self._simulaciones_extras()
-        
-        logger.info("=== SIMULACIONES COMPLETADAS ===")
-    
-    def _simulacion1_ClienteValido(self):
-        """Simulación 1: Cliente válido."""
-        logger.info(" Simulación 1: Cliente válido")
-        try:
-            exito = self.registrarCliente("Juan Pérez", "12345678", "juan.perez@email.com")
-            if exito:
-                logger.info(" Simulación 1 exitosa: cliente registrado correctamente")
-            else:
-                logger.error(" Simulación 1 fallida: no se pudo registrar el cliente")
-        except Exception as e:
-            logger.error(f" Error en simulación 1: {str(e)}")
-    
-    def _simulacion2_ReservaValida(self):
-        """Simulación 2: Reserva válida."""
-        logger.info(" Simulación 2: Reserva válida")
-        try:
-            if self.__client and self.__servicios:
-                cliente = self.__client[0]
-                servicio = self.__servicios[0]
-                exito = self.crearReserva(cliente, servicio, 2, date.today() + timedelta(days=1))
-                if exito:
-                    logger.info(" Simulación 2 exitosa: reserva creada correctamente")
-                else:
-                    logger.error(" Simulación 2 fallida: no se pudo crear la reserva")
-            else:
-                logger.warning(" No hay clientes o servicios disponibles para la simulación 2")
-        except Exception as e:
-            logger.error(f" Error en simulación 2: {str(e)}")
-    
-    def _simulacion3_SalaValida(self):
-        """Simulación 3: Sala válida."""
-        logger.info(" Simulación 3: Sala válida")
-        try:
-            sala = ReservaSala("SALA001", "Sala de Reuniones Principal", 50000, 20)
-            exito = self.agregarServicio(sala)
-            if exito:
-                logger.info(" Simulación 3 exitosa: sala agregada correctamente")
-            else:
-                logger.error(" Simulación 3 fallida: no se pudo agregar la sala")
-        except Exception as e:
-            logger.error(f" Error en simulación 3: {str(e)}")
-    
-    def _simulacion4_EquipoValido(self):
-        """Simulación 4: Equipo válido."""
-        logger.info(" Simulación 4: Equipo válido")
-        try:
-            equipo = AlquilerEquipo("EQ001", "Proyector Epson", 25000, "Proyector Epson PowerLite")
-            exito = self.agregarServicio(equipo)
-            if exito:
-                logger.info(" Simulación 4 exitosa: equipo agregado correctamente")
-            else:
-                logger.error(" Simulación 4 fallida: no se pudo agregar el equipo")
-        except Exception as e:
-            logger.error(f" Error en simulación 4: {str(e)}")
-    
-    def _simulacion5_AsesoriaValida(self):
-        """Simulación 5: Asesoría válida."""
-        logger.info(" Simulación 5: Asesoría válida")
-        try:
-            asesoria = AsesoriaEspecializada("ASE001", "Asesoría en IA", 75000, "Inteligencia Artificial", 8)
-            exito = self.agregarServicio(asesoria)
-            if exito:
-                logger.info(" Simulación 5 exitosa: asesoría agregada correctamente")
-            else:
-                logger.error(" Simulación 5 fallida: no se pudo agregar la asesoría")
-        except Exception as e:
-            logger.error(f" Error en simulación 5: {str(e)}")
-    
-    def _simulacion6_ClienteSinDocumento(self):
-        """Simulación 6: Cliente sin documento."""
-        logger.info(" Simulación 6: Cliente sin documento")
-        try:
-            exito = self.registrarCliente("María García", "", "maria.garcia@email.com")
-            if not exito:
-                logger.info(" Simulación 6 exitosa: se detectó correctamente el error de documento faltante")
-            else:
-                logger.error(" Simulación 6 fallida: no se detectó el error de documento faltante")
-        except Exception as e:
-            logger.error(f" Error inesperado en simulación 6: {str(e)}")
-    
-    def _simulacion7_ClienteDatosIncorrectos(self):
-        """Simulación 7: Cliente con datos incorrectos."""
-        logger.info(" Simulación 7: Cliente con datos incorrectos")
-        try:
-            exito = self.registrarCliente("Carlos", "123", "email_no_valido")
-            if not exito:
-                logger.info(" Simulación 7 exitosa: se detectaron correctamente los datos incorrectos")
-            else:
-                logger.error(" Simulación 7 fallida: no se detectaron los datos incorrectos")
-        except Exception as e:
-            logger.error(f" Error inesperado en simulación 7: {str(e)}")
-    
-    def _simulacion8_ServicioInexistente(self):
-        """Simulación 8: Servicio inexistente."""
-        logger.info(" Simulación 8: Servicio inexistente")
-        try:
-            if self.__client:
-                cliente = self.__client[0]
-                # Intentar crear reserva con un servicio que no existe
-                servicio_ficticio = ReservaSala("FICTICIO", "Servicio Ficticio", 10000, 10)
-                exito = self.crearReserva(cliente, servicio_ficticio, 1, date.today() + timedelta(days=1))
-                if not exito:
-                    logger.info(" Simulación 8 exitosa: se detectó correctamente el servicio inexistente")
-                else:
-                    logger.error(" Simulación 8 fallida: no se detectó el servicio inexistente")
-            else:
-                logger.warning(" No hay clientes disponibles para la simulación 8")
-        except Exception as e:
-            logger.error(f" Error inesperado en simulación 8: {str(e)}")
-    
-    def _simulacion9_DurationInvalida(self):
-        """Simulación 9: Duración inválida."""
-        logger.info(" Simulación 9: Duración inválida")
-        try:
-            if self.__client and self.__servicios:
-                cliente = self.__client[0]
-                servicio = self.__servicios[0]
-                exito = self.crearReserva(cliente, servicio, -5, date.today() + timedelta(days=1))
-                if not exito:
-                    logger.info(" Simulación 9 exitosa: se detectó correctamente la duración inválida")
-                else:
-                    logger.error(" Simulación 9 fallida: no se detectó la duración inválida")
-            else:
-                logger.warning(" No hay clientes o servicios disponibles para la simulación 9")
-        except Exception as e:
-            logger.error(f" Error inesperado en simulación 9: {str(e)}")
-    
-    def _simulacion10_ReservaIncorrecta(self):
-        """Simulación 10: Reserva incorrecta."""
-        logger.info(" Simulación 10: Reserva incorrecta")
-        try:
-            if self.__client:
-                cliente = self.__client[0]
-                # Intentar crear reserva con fecha pasada
-                servicio = ReservaSala("SALA002", "Sala de Prueba", 30000, 10)
-                exito = self.crearReserva(cliente, servicio, 2, date.today() - timedelta(days=1))
-                if not exito:
-                    logger.info(" Simulación 10 exitosa: se detectó correctamente la fecha pasada")
-                else:
-                    logger.error(" Simulación 10 fallida: no se detectó la fecha pasada")
-            else:
-                logger.warning(" No hay clientes disponibles para la simulación 10")
-        except Exception as e:
-            logger.error(f" Error inesperado en simulación 10: {str(e)}")
-    
-    def _simulaciones_extras(self):
-        """Simulaciones extras para demostrar robustez."""
-        logger.info("=== SIMULACIONES EXTRAS ===")
-        
-        # Extra 1: Encadenamiento de excepciones
-        self._extra1_EncadenamientoExcepciones()
-        
-        # Extra 2: Operación que falla pero continúa
-        self._extra2_OperacionFallidaContinua()
-        
-        # Extra 3: Múltiples errores consecutivos
-        self._extra3_MultiplesErrores()
-        
-        # Extra 4: Validación de límites
-        self._extra4_ValidacionLimites()
-        
-        # Extra 5: Operación compleja exitosa
-        self._extra5_OperacionComplejaExitosa()
-    
-    def _extra1_EncadenamientoExcepciones(self):
-        """Extra 1: Demostrar encadenamiento de excepciones."""
-        logger.info(" Extra 1: Encadenamiento de excepciones")
-        try:
-            # Intentar crear un cliente con datos que causan múltiples errores
-            cliente = Cliente("A", "123", "email")  # Múltiples errores
-        except Exception as e:
-            logger.info(f" Excepción encadenada detectada: {type(e).__name__}: {str(e)}")
-            if e.__cause__:
-                logger.info(f" Causa original: {type(e.__cause__).__name__}: {str(e.__cause__)}")
-    
-    def _extra2_OperacionFallidaContinua(self):
-        """Extra 2: Operación fallida que no detiene el sistema."""
-        logger.info(" Extra 2: Operación fallida que continúa")
-        try:
-            # Intentar una operación que fallará
-            cliente_invalido = Cliente("", "", "")
-        except Exception as e:
-            logger.warning(f" Error controlado: {str(e)}")
-            logger.info(" El sistema continúa funcionando después del error")
-    
-    def _extra3_MultiplesErrores(self):
-        """Extra 3: Múltiples errores consecutivos."""
-        logger.info(" Extra 3: Múltiples errores consecutivos")
-        errores = 0
-        
-        # Primero error
-        try:
-            cliente = Cliente("Test", "123", "email_invalido")
-        except Exception as e:
-            logger.error(f" Error 1: {str(e)}")
-            errores += 1
-        
-        # Segundo error
-        try:
-            servicio = ReservaSala("S", "Sala", -1000, 0)
-        except Exception as e:
-            logger.error(f" Error 2: {str(e)}")
-            errores += 1
-        
-        # Tercer error
-        try:
-            reserva = Reserva(None, None, 0, None)
-        except Exception as e:
-            logger.error(f" Error 3: {str(e)}")
-            errores += 1
-        
-        logger.info(f" Total de errores manejados: {errores}")
-        logger.info(" El sistema sigue funcionando después de múltiples errores")
-    
-    def _extra4_ValidacionLimites(self):
-        """Extra 4: Validación de límites."""
-        logger.info(" Extra 4: Validación de límites")
-        try:
-            # Probar con valores en los límites
-            cliente_limite = Cliente("A" * 100, "12345678", "test@email.com")
-            logger.info(" Cliente con nombre largo aceptado correctamente")
-        except Exception as e:
-            logger.error(f" Error inesperado con límites: {str(e)}")
-    
-    def _extra5_OperacionComplejaExitosa(self):
-        """Extra 5: Operación compleja exitosa."""
-        logger.info(" Extra 5: Operación compleja exitosa")
-        try:
-            # Crear cliente
-            cliente = Cliente("Ana López", "87654321", "ana.lopez@email.com")
-            self.__client.append(cliente)
-            
-            # Crear servicio
-            servicio = ReservaSala("SALA003", "Sala Ejecutiva", 75000, 15)
-            self.__servicios.append(servicio)
-            
-            # Crear reserva
-            reserva = Reserva(cliente, servicio, 3, date.today() + timedelta(days=2))
-            self.__reservas.append(reserva)
-            
-            # Calcular costo con parámetros
-            costo = reserva.calcular_costo(impuesto=0.16, descuento=0.10, personas=10)
-            
-            logger.info(f" Operación compleja exitosa. Costo final: ${costo:,.2f}")
-            
-        except Exception as e:
-            logger.error(f" Error en operación compleja: {str(e)}")
+
+    def registrarCliente(self, cliente: Cliente):
+        """Registra un cliente despues de validar su tipo y su identificador."""
+
+        if not isinstance(cliente, Cliente):
+            raise ClienteInvalidoError(
+                "El objeto proporcionado no es un cliente valido."
+            )
+
+        for registrado in self.__clientes:
+            if registrado.id == cliente.id:
+                raise ValueError("Ya existe un cliente con ese identificador.")
+
+        self.__clientes.append(cliente)
+        logger.info("Cliente registrado: %s", cliente)
+        return cliente
+
+    def agregarServicio(self, servicio: Servicio):
+        """Agrega un servicio valido al sistema."""
+
+        if not isinstance(servicio, Servicio):
+            raise ParametroObligatorioError(
+                "Debe proporcionar un objeto de tipo Servicio."
+            )
+
+        for registrado in self.__servicios:
+            if registrado.id_servicio == servicio.id_servicio:
+                raise ValueError("Ya existe un servicio con ese identificador.")
+
+        self.__servicios.append(servicio)
+        logger.info("Servicio agregado: %s", servicio)
+        return servicio
+
+    def crearReserva(self, cliente, servicio, duracion, fecha):
+        """Crea una reserva usando un cliente y un servicio registrados."""
+
+        if cliente not in self.__clientes:
+            raise ReservaInvalidaError(
+                "El cliente no se encuentra registrado en el sistema."
+            )
+
+        if servicio not in self.__servicios:
+            raise ReservaInvalidaError(
+                "El servicio no se encuentra registrado en el sistema."
+            )
+
+        reserva = Reserva(cliente, servicio, duracion, fecha)
+        self.__reservas.append(reserva)
+
+        logger.info(
+            "Reserva creada para el cliente %s y el servicio %s.",
+            cliente.id,
+            servicio.id_servicio
+        )
+
+        return reserva
+
+    def procesarReserva(self, reserva, **kwargs):
+        """Calcula el costo y confirma una reserva."""
+
+        if reserva not in self.__reservas:
+            raise ReservaInvalidaError(
+                "La reserva no pertenece a este sistema."
+            )
+
+        return reserva.procesar(**kwargs)
+
+    def mostrarResumen(self):
+        """Muestra el resumen de los registros."""
+
+        print("\n========== RESUMEN DEL SISTEMA ==========")
+        print("Clientes registrados:", len(self.__clientes))
+        print("Servicios registrados:", len(self.__servicios))
+        print("Reservas creadas:", len(self.__reservas))
+
+        for reserva in self.__reservas:
+            print(reserva)
+
+        print("=========================================")
+
+
+def ejecutar_simulaciones():
+    """Ejecuta operaciones validas e invalidas para demostrar el sistema."""
+
+    sistema = SistemaGestion()
+    fecha_reserva = date.today() + timedelta(days=3)
+
+    print("\n==========================================")
+    print(" SISTEMA INTEGRAL DE GESTION - SOFTWARE FJ")
+    print("==========================================")
+
+    # SIMULACION 1: Registrar un cliente valido.
+    print("\nSIMULACION 1: Registro de cliente valido")
+
+    cliente = Cliente(
+        "Carlos Perez",
+        "12345678",
+        "carlos@gmail.com"
+    )
+
+    sistema.registrarCliente(cliente)
+    print("Resultado: cliente registrado correctamente.")
+
+    # SIMULACION 2: Intentar crear un cliente con datos invalidos.
+    print("\nSIMULACION 2: Registro de cliente invalido")
+
+    try:
+        Cliente(
+            "",
+            "123",
+            "correo_incorrecto"
+        )
+    except (ClienteInvalidoError, ParametroObligatorioError, ValueError) as error:
+        logger.warning("No fue posible crear el cliente: %s", error)
+        print("Resultado: se rechazo el cliente por datos invalidos.")
+
+    # SIMULACION 3: Crear y registrar una reserva de sala.
+    print("\nSIMULACION 3: Registro de servicio de sala")
+
+    sala = ReservaSala(
+        "S001",
+        "Sala de reuniones",
+        80000,
+        10
+    )
+
+    sistema.agregarServicio(sala)
+    print("Resultado: servicio de sala registrado.")
+
+    # SIMULACION 4: Crear y registrar un servicio de alquiler de equipo.
+    print("\nSIMULACION 4: Registro de alquiler de equipo")
+
+    equipo = AlquilerEquipo(
+        "S002",
+        "Proyector multimedia",
+        50000,
+        "Proyector",
+        "disponible"
+    )
+
+    sistema.agregarServicio(equipo)
+    print("Resultado: equipo registrado correctamente.")
+
+    # SIMULACION 5: Crear y registrar una asesoria especializada.
+    print("\nSIMULACION 5: Registro de asesoria especializada")
+
+    asesoria = AsesoriaEspecializada(
+        "S003",
+        "Asesoria tecnologica",
+        60000,
+        "Tecnologia",
+        4
+    )
+
+    sistema.agregarServicio(asesoria)
+    print("Resultado: asesoria registrada correctamente.")
+
+    # SIMULACION 6: Intentar registrar un servicio duplicado.
+    print("\nSIMULACION 6: Registro de servicio duplicado")
+
+    try:
+        sistema.agregarServicio(sala)
+    except ValueError as error:
+        logger.warning("Registro duplicado: %s", error)
+        print("Resultado: se rechazo el servicio duplicado.")
+
+    # SIMULACION 7: Crear y procesar una reserva de sala.
+    print("\nSIMULACION 7: Reserva de sala")
+
+    reserva_sala = sistema.crearReserva(
+        cliente,
+        sala,
+        2,
+        fecha_reserva
+    )
+
+    costo_sala = sistema.procesarReserva(
+        reserva_sala,
+        personas=5,
+        impuesto=0.19,
+        descuento=0.10
+    )
+
+    print("Resultado: reserva procesada correctamente.")
+    print("Costo de la reserva de sala: $", costo_sala)
+
+    # SIMULACION 8: Crear y procesar una reserva de equipo.
+    print("\nSIMULACION 8: Reserva de equipo")
+
+    reserva_equipo = sistema.crearReserva(
+        cliente,
+        equipo,
+        3,
+        fecha_reserva
+    )
+
+    costo_equipo = sistema.procesarReserva(
+        reserva_equipo,
+        danio=False,
+        limpieza=True
+    )
+
+    print("Resultado: reserva de equipo procesada.")
+    print("Costo del alquiler: $", costo_equipo)
+
+    # SIMULACION 9: Crear y procesar una asesoria.
+    print("\nSIMULACION 9: Reserva de asesoria")
+
+    reserva_asesoria = sistema.crearReserva(
+        cliente,
+        asesoria,
+        2,
+        fecha_reserva
+    )
+
+    costo_asesoria = sistema.procesarReserva(
+        reserva_asesoria,
+        preparacion=True,
+        material=True
+    )
+
+    print("Resultado: asesoria procesada correctamente.")
+    print("Costo de la asesoria: $", costo_asesoria)
+
+    # SIMULACION 10: Intentar crear una reserva con duracion invalida.
+    print("\nSIMULACION 10: Duracion invalida")
+
+    try:
+        sistema.crearReserva(
+            cliente,
+            sala,
+            0,
+            fecha_reserva
+        )
+    except (DuracionInvalidaError, ReservaInvalidaError, ValueError) as error:
+        logger.warning("Reserva rechazada: %s", error)
+        print("Resultado: se rechazo la duracion invalida.")
+
+    # SIMULACION 11: Intentar crear una reserva con fecha pasada.
+    print("\nSIMULACION 11: Fecha de reserva vencida")
+
+    try:
+        sistema.crearReserva(
+            cliente,
+            sala,
+            1,
+            date.today() - timedelta(days=1)
+        )
+    except (ReservaInvalidaError, ValueError) as error:
+        logger.warning("Fecha de reserva rechazada: %s", error)
+        print("Resultado: se rechazo la fecha pasada.")
+
+    # SIMULACION 12: Intentar reservar un servicio no registrado.
+    print("\nSIMULACION 12: Servicio no registrado")
+
+    try:
+        servicio_externo = ReservaSala(
+            "S999",
+            "Sala externa",
+            70000,
+            8
+        )
+
+        sistema.crearReserva(
+            cliente,
+            servicio_externo,
+            1,
+            fecha_reserva
+        )
+    except (ReservaInvalidaError, ValueError) as error:
+        logger.warning("Servicio rechazado: %s", error)
+        print("Resultado: se rechazo el servicio no registrado.")
+
+    # SIMULACION 13: Intentar reservar un equipo en mantenimiento.
+    print("\nSIMULACION 13: Equipo no disponible")
+
+    equipo.cambiar_estado("mantenimiento")
+
+    reserva_mantenimiento = sistema.crearReserva(
+        cliente,
+        equipo,
+        1,
+        fecha_reserva
+    )
+
+    try:
+        sistema.procesarReserva(reserva_mantenimiento)
+    except (ServicioNoDisponibleError, ReservaInvalidaError) as error:
+        logger.error("No se pudo procesar la reserva: %s", error)
+        print("Resultado: no se pudo reservar el equipo.")
+
+    # SIMULACION 14: Demostrar el manejo de excepciones.
+    print("\nSIMULACION 14: Manejo de excepciones")
+
+    try:
+        print("Verificando el estado de una reserva...")
+        if reserva_sala.estado != "confirmada":
+            raise EstadoReservaError(
+                "La reserva de sala no se encuentra confirmada."
+            )
+
+    except EstadoReservaError as error:
+        logger.error("Error de estado: %s", error)
+        print("Se detecto un problema con el estado de la reserva.")
+
+    else:
+        print("La reserva se encuentra confirmada correctamente.")
+
+    finally:
+        print("Verificacion de estado finalizada.")
+
+    # Mostrar el resumen de las operaciones.
+    sistema.mostrarResumen()
+
+    logger.info("Finalizaron las simulaciones del sistema.")
+
 
 def main():
-    """Función principal del sistema."""
-    logger.info("=== INICIO DEL SISTEMA SOFTWARE FJ ===")
-    
-    sistema = SistemaGestion()
-    sistema.ejecutar_simulaciones()
-    
-    logger.info("=== SISTEMA FINALIZADO CORRECTAMENTE ===")
+    """Punto de entrada del programa."""
+
+    try:
+        ejecutar_simulaciones()
+
+    except Exception as error:
+        logger.exception("Error inesperado durante la ejecucion: %s", error)
+        print("Ocurrio un error inesperado. Revise los archivos de logs.")
+
+    else:
+        print("\nEl programa finalizo las simulaciones.")
+
+    finally:
+        print("Gracias por utilizar el sistema Software FJ.")
+
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())
+
+11.
+"""
+test_simulaciones.py - Pruebas automaticas del sistema Software FJ.
+"""
+
+import unittest
+from datetime import date, timedelta
+
+from cliente import Cliente
+from reserva import Reserva
+from reserva_sala import ReservaSala
+from alquiler_equipo import AlquilerEquipo
+from asesoria_especializada import AsesoriaEspecializada
+
+from excepciones import (
+    ClienteInvalidoError,
+    ServicioNoDisponibleError,
+    ReservaInvalidaError,
+    DuracionInvalidaError,
+    ParametroObligatorioError,
+    EstadoReservaError
+)
+
+
+class TestCliente(unittest.TestCase):
+
+    def test_cliente_valido(self):
+        cliente = Cliente(
+            "Carlos Perez",
+            "12345678",
+            "carlos@gmail.com"
+        )
+
+        self.assertEqual(cliente.nombre, "Carlos Perez")
+        self.assertEqual(cliente.documento, "12345678")
+        self.assertEqual(cliente.contacto, "carlos@gmail.com")
+
+    def test_cliente_nombre_invalido(self):
+        with self.assertRaises(
+            (ClienteInvalidoError, ParametroObligatorioError)
+        ):
+            Cliente("", "12345678", "carlos@gmail.com")
+
+    def test_cliente_documento_invalido(self):
+        with self.assertRaises(
+            (ClienteInvalidoError, ParametroObligatorioError)
+        ):
+            Cliente("Carlos Perez", "123", "carlos@gmail.com")
+
+    def test_cliente_correo_invalido(self):
+        with self.assertRaises(
+            (ClienteInvalidoError, ParametroObligatorioError)
+        ):
+            Cliente("Carlos Perez", "12345678", "correo_incorrecto")
+
+
+class TestServicios(unittest.TestCase):
+
+    def test_reserva_sala_costo(self):
+        sala = ReservaSala(
+            "S001",
+            "Sala de reuniones",
+            80000,
+            10
+        )
+
+        costo = sala.calcular_costo(
+            2,
+            personas=5,
+            impuesto=0.19,
+            descuento=0.10
+        )
+
+        esperado = 80000 * 2 * 1.19 * 0.90
+        self.assertAlmostEqual(costo, esperado, places=2)
+
+    def test_reserva_sala_exceso_personas(self):
+        sala = ReservaSala(
+            "S001",
+            "Sala de reuniones",
+            80000,
+            10
+        )
+
+        with self.assertRaises(Exception):
+            sala.calcular_costo(2, personas=15)
+
+    def test_alquiler_equipo_costo(self):
+        equipo = AlquilerEquipo(
+            "S002",
+            "Proyector multimedia",
+            50000,
+            "Proyector",
+            "disponible"
+        )
+
+        costo = equipo.calcular_costo(
+            2,
+            danio=False,
+            limpieza=True
+        )
+
+        self.assertEqual(costo, 125000)
+
+    def test_equipo_no_disponible(self):
+        equipo = AlquilerEquipo(
+            "S002",
+            "Proyector multimedia",
+            50000,
+            "Proyector",
+            "mantenimiento"
+        )
+
+        with self.assertRaises(ServicioNoDisponibleError):
+            equipo.calcular_costo(1)
+
+    def test_asesoria_costo(self):
+        asesoria = AsesoriaEspecializada(
+            "S003",
+            "Asesoria tecnologica",
+            60000,
+            "Tecnologia",
+            4
+        )
+
+        costo = asesoria.calcular_costo(
+            2,
+            preparacion=True,
+            material=True
+        )
+
+        self.assertEqual(costo, 200000)
+
+    def test_asesoria_supera_duracion_maxima(self):
+        asesoria = AsesoriaEspecializada(
+            "S003",
+            "Asesoria tecnologica",
+            60000,
+            "Tecnologia",
+            4
+        )
+
+        with self.assertRaises(Exception):
+            asesoria.calcular_costo(5)
+
+
+class TestReserva(unittest.TestCase):
+
+    def setUp(self):
+        self.cliente = Cliente(
+            "Carlos Perez",
+            "12345678",
+            "carlos@gmail.com"
+        )
+
+        self.sala = ReservaSala(
+            "S001",
+            "Sala de reuniones",
+            80000,
+            10
+        )
+
+        self.fecha = date.today() + timedelta(days=3)
+
+    def test_crear_reserva_valida(self):
+        reserva = Reserva(
+            self.cliente,
+            self.sala,
+            2,
+            self.fecha
+        )
+
+        self.assertEqual(reserva.estado, "pendiente")
+        self.assertEqual(reserva.duracion, 2)
+
+    def test_duracion_invalida(self):
+        with self.assertRaises(DuracionInvalidaError):
+            Reserva(
+                self.cliente,
+                self.sala,
+                0,
+                self.fecha
+            )
+
+    def test_fecha_pasada(self):
+        with self.assertRaises(ReservaInvalidaError):
+            Reserva(
+                self.cliente,
+                self.sala,
+                2,
+                date.today() - timedelta(days=1)
+            )
+
+    def test_procesar_reserva(self):
+        reserva = Reserva(
+            self.cliente,
+            self.sala,
+            2,
+            self.fecha
+        )
+
+        costo = reserva.procesar(
+            personas=5,
+            impuesto=0.19,
+            descuento=0.10
+        )
+
+        self.assertAlmostEqual(costo, 171360, places=2)
+        self.assertEqual(reserva.estado, "confirmada")
+
+    def test_cancelar_reserva(self):
+        reserva = Reserva(
+            self.cliente,
+            self.sala,
+            2,
+            self.fecha
+        )
+
+        reserva.cancelar()
+
+        self.assertEqual(reserva.estado, "cancelada")
+
+    def test_completar_reserva(self):
+        reserva = Reserva(
+            self.cliente,
+            self.sala,
+            2,
+            self.fecha
+        )
+
+        reserva.confirmar()
+        reserva.completar()
+
+        self.assertEqual(reserva.estado, "completada")
+
+    def test_encadenamiento_excepcion(self):
+        reserva = Reserva(
+            self.cliente,
+            self.sala,
+            2,
+            self.fecha
+        )
+
+        with self.assertRaises(ReservaInvalidaError) as contexto:
+            reserva.calcular_costo(personas=15)
+
+        self.assertIsNotNone(contexto.exception.__cause__)
+
+
+if __name__ == "__main__":
+    unittest.main()
